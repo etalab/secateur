@@ -73,11 +73,12 @@ Expires: Tue, 17 Jan 2017 16:43:07 GMT
 Last-Modified: Tue, 17 Jan 2017 04:33:10 GMT
 ...
 
-Date de l'export,Code du département,Type de scrutin,Libellé du département,Code de la commune,Libellé de la commune,Inscrits,Abstentions,% Abs/Ins,Votants,% Vot/Ins,Blancs et nuls,% BlNuls/Ins,% BlNuls/Vot,Exprimés,% Exp/Ins,% Exp/Vot,Code Nuance,Sexe,Nom,Prénom,Liste,Sièges / Elu,Sièges Secteur,Sièges CC,Voix,% Voix/Ins,% Voix/Exp,
-31/03/2014 09:33:41,01,LI2,AIN,004,Ambérieu-en-Bugey,00008198,00003619,"44,14",00004579,"55,86",00000211,"2,57","4,61",00004368,"53,28","95,39",LDVG,F,EXPOSITO,Josiane,AMBERIEU AMBITION,3,0,1,00000949,"11,58","21,73",LDVG
+Date de l'export;Code du département;Type de scrutin;Libellé du département;Code de la commune;Libellé de la commune;Inscrits;Abstentions;% Abs/Ins;Votants;% Vot/Ins;Blancs et nuls;% BlNuls/Ins;% BlNuls/Vot;Exprimés;% Exp/Ins;% Exp/Vot;Code Nuance;Sexe;Nom;Prénom;Liste;Sièges / Elu;Sièges Secteur;Sièges CC;Voix;% Voix/Ins;% Voix/Exp;
+31/03/2014 09:33:41;01;LI2;AIN;004;Ambérieu-en-Bugey;00008198;00003619;44,14;00004579;55,86;00000211;2,57;4,61;00004368;53,28;95,39;LDVG;F;EXPOSITO;Josiane;AMBERIEU AMBITION;3;0;1;00000949;11,58;21,73;LDVG
 ```
 
-Note that headers of the file are adequate.
+Note that headers of the file are adequate and the initial CSV dialect
+is kept.
 
 
 ## To discuss
@@ -85,3 +86,5 @@ Note that headers of the file are adequate.
 * store a complete log of requests to be able to replay everything?
 * cache/invalidate downloaded source files (independently of process?)
 * add an option to force a whole new process
+* make is works with unamed/no columns (indexes?)
+* add the ability to force encoding from GET parameters

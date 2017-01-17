@@ -3,12 +3,12 @@ import logging
 import os
 import re
 
+from chardet.universaldetector import UniversalDetector
 from nameko.events import event_handler
 
 from .constants import RESULTS_FOLDER, STATUS_REDUCE, STATUS_COMPLETE
 from .logger import LoggingDependency
 from .storages import RedisStorage
-from .tools import guess_encoding
 
 # See https://github.com/kvesteri/validators for reference.
 url_pattern = re.compile(
@@ -35,8 +35,14 @@ class ReducerService(object):
             self.storage.set_status(url_hash, STATUS_COMPLETE)
             return
         self.storage.set_status(url_hash, STATUS_REDUCE)
-        # Only guess the encoding over the first bytes of the file.
-        encoding = guess_encoding(open(file_name, 'rb').read(2048))
+        # Guess encoding using chardet.
+        detector = UniversalDetector()
+        for line in open(file_name, 'rb'):
+            detector.feed(line)
+            if detector.done:
+                break
+        detector.close()
+        encoding = detector.result['encoding']
         with open(file_name, encoding=encoding) as csvfile_in,\
                 open(file_name_out, 'w') as csvfile_out:
             # Documention suggests 1024 but it's not enough for

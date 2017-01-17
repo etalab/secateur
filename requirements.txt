@@ -1,2 +1,4 @@
+# Latest release of chardet is way ahead master (2.3.0 as of today).
+-e git://github.com/chardet/chardet.git@ec7aa577b5437fb53d8e22625232fa4f0f04a11f#egg=chardet
 nameko==2.5.0
 redis==2.10.5
