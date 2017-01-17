@@ -38,3 +38,41 @@ def send_file(request, filename, attachment_filename):
 def generate_hash(query_string):
     """Custom hash to avoid long values."""
     return hashlib.md5(query_string.encode('utf-8')).hexdigest()[:10]
+
+
+def guess_encoding(data):
+    """Return the guessed encoding from data.
+
+    chardet is not used because of weird results, we want to fallback on
+    latin-1 if it fails to read ASCII and UTF-8, not some greek encoding!
+    Source: http://unicodebook.readthedocs.io/guess_encoding.html
+
+    Check for instance:
+    https://www.data.gouv.fr/storage/f/2014-03-31T09-49-28/
+    muni-2014-resultats-com-1000-et-plus-t2.txt
+    """
+    def _isASCII(data):
+        try:
+            data.decode('ASCII')
+        except UnicodeDecodeError:
+            return False
+        else:
+            return True
+
+    def _isUTF8Strict(data):
+        try:
+            decoded = data.decode('UTF-8')
+        except UnicodeDecodeError:
+            return False
+        else:
+            for ch in decoded:
+                if 0xD800 <= ord(ch) <= 0xDFFF:
+                    return False
+            return True
+
+    if _isASCII(data):
+        return 'ascii'
+    elif _isUTF8Strict(data):
+        return 'utf-8'
+    else:
+        return 'latin-1'
