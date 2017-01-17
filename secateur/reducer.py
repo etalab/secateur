@@ -33,7 +33,7 @@ class ReducerService(object):
         log('Reducing {file_path}'.format(file_path=file_path))
         job_hash = job_data['job_hash']
         file_path_out = os.path.join(RESULTS_FOLDER, job_hash)
-        if file_exists(file_path_out):
+        if file_exists(file_path_out) and not job_data['force']:
             log('Fetching from cache {file_path}'.format(file_path=file_path))
             self.storage.set_status(job_hash, STATUS_COMPLETE)
             return

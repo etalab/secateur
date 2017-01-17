@@ -38,7 +38,7 @@ class DownloaderService(object):
             logging.error('Error with {url}: not a URL'.format(url=url))
             return
         file_path = os.path.join(SOURCES_FOLDER, job_data['url_hash'])
-        if file_exists(file_path):
+        if file_exists(file_path) and not job_data['force']:
             log('Fetching from cache {file_path}'.format(file_path=file_path))
         else:
             self.storage.set_status(job_data['job_hash'], STATUS_DOWNLOAD)

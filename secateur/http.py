@@ -24,6 +24,7 @@ class HttpService(object):
 
     @http('GET', '/process')
     def process_url(self, request):
+        force = bool(int(request.args.get('force', 0)))
         url = request.args.get('url')
         filters = list(zip(request.args.getlist('column'),
                            request.args.getlist('value')))
@@ -32,12 +33,13 @@ class HttpService(object):
         query_string = request.query_string.decode('utf-8')
         job_hash = generate_hash(query_string)
         url_hash = generate_hash(url)
-        if not self.storage.get_status(job_hash):
+        if force or not self.storage.get_status(job_hash):
             self.download({
                 'url': url,
                 'filters': filters,
                 'job_hash': job_hash,
-                'url_hash': url_hash
+                'url_hash': url_hash,
+                'force': force
             })
         return ACCEPTED, json.dumps({'hash': job_hash}, indent=2)
 

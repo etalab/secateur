@@ -80,10 +80,36 @@ Date de l'export;Code du département;Type de scrutin;Libellé du département;C
 Note that headers of the file are adequate and the initial CSV dialect
 is kept.
 
+Subsequent calls will not download the source file again but reduce
+the file straight away:
+
+```shell
+$ http :8000/process url=="https://www.data.gouv.fr/storage/f/2014-03-31T09-49-28/muni-2014-resultats-com-1000-et-plus-t2.txt" column=="Code du département" value=="01"
+HTTP/1.1 202 ACCEPTED
+...
+
+{
+    "hash": "c8fef19134"
+}
+```
+
+However, you can force to download/reduce files again with the `force`
+parameter:
+
+```shell
+$ http :8000/process url=="https://www.data.gouv.fr/storage/f/2014-03-31T09-49-28/muni-2014-resultats-com-1000-et-plus-t2.txt" column=="Code du département" value=="01" force=="1"
+HTTP/1.1 202 ACCEPTED
+...
+
+{
+    "hash": "c8fef19134"
+}
+```
+
+
 
 ## To discuss
 
 * store a complete log of requests to be able to replay everything?
-* add an option to force a whole new process
 * make is works with unamed/no columns (indexes?)
 * add the ability to force encoding from GET parameters
