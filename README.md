@@ -84,7 +84,6 @@ is kept.
 ## To discuss
 
 * store a complete log of requests to be able to replay everything?
-* cache/invalidate downloaded source files (independently of process?)
 * add an option to force a whole new process
 * make is works with unamed/no columns (indexes?)
 * add the ability to force encoding from GET parameters

@@ -30,15 +30,21 @@ class HttpService(object):
         log('Downloading url {url} to reduce with {filters}'.format(
             url=url, filters=filters))
         query_string = request.query_string.decode('utf-8')
-        url_hash = generate_hash(query_string)
-        if not self.storage.get_status(url_hash):
-            self.download(url, filters, url_hash)
-        return ACCEPTED, json.dumps({'hash': url_hash}, indent=2)
+        job_hash = generate_hash(query_string)
+        url_hash = generate_hash(url)
+        if not self.storage.get_status(job_hash):
+            self.download({
+                'url': url,
+                'filters': filters,
+                'job_hash': job_hash,
+                'url_hash': url_hash
+            })
+        return ACCEPTED, json.dumps({'hash': job_hash}, indent=2)
 
-    @http('GET', '/status/<url_hash>')
-    def check_status_from_hash(self, request, url_hash):
-        log('Retrieving url hash {hash}'.format(hash=url_hash))
-        status = self.storage.get_status(url_hash)
+    @http('GET', '/status/<job_hash>')
+    def check_status_from_hash(self, request, job_hash):
+        log('Retrieving url hash {hash}'.format(hash=job_hash))
+        status = self.storage.get_status(job_hash)
         if status is None:
             return NOT_FOUND, ''
         else:
@@ -48,17 +54,17 @@ class HttpService(object):
         else:
             return PRECONDITION_REQUIRED, ''
 
-    @http('GET', '/file/<url_hash>')
-    def retrieve_file_from_hash(self, request, url_hash):
-        log('Retrieving file with hash {hash}'.format(hash=url_hash))
-        if not int(self.storage.get_status(url_hash)) == STATUS_COMPLETE:
+    @http('GET', '/file/<job_hash>')
+    def retrieve_file_from_hash(self, request, job_hash):
+        log('Retrieving file with hash {hash}'.format(hash=job_hash))
+        if not int(self.storage.get_status(job_hash)) == STATUS_COMPLETE:
             return NOT_FOUND, ''
-        csvfile_out = os.path.join(RESULTS_FOLDER, url_hash)
-        attachment_filename = '{url_hash}.csv'.format(url_hash=url_hash)
+        csvfile_out = os.path.join(RESULTS_FOLDER, job_hash)
+        attachment_filename = '{job_hash}.csv'.format(job_hash=job_hash)
         return send_file(
             request, csvfile_out, attachment_filename=attachment_filename)
 
     @rpc
-    def download(self, url, filters, url_hash):
-        log('Downloading {url}'.format(url=url))
-        self.dispatch('url_to_download', (url, filters, url_hash))
+    def download(self, job_data):
+        log('Dispatching download of {url}'.format(url=job_data['url']))
+        self.dispatch('url_to_download', job_data)

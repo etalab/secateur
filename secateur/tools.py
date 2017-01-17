@@ -38,3 +38,8 @@ def send_file(request, filename, attachment_filename):
 def generate_hash(query_string):
     """Custom hash to avoid long values."""
     return hashlib.md5(query_string.encode('utf-8')).hexdigest()[:10]
+
+
+def file_exists(file_path):
+    """Check existence AND non-emptiness of the file."""
+    return os.path.isfile(file_path) and os.stat(file_path).st_size

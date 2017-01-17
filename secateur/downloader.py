@@ -10,6 +10,7 @@ from nameko.events import event_handler, EventDispatcher
 from .constants import SOURCES_FOLDER, STATUS_DOWNLOAD
 from .logger import LoggingDependency
 from .storages import RedisStorage
+from .tools import file_exists
 
 # See https://github.com/kvesteri/validators for reference.
 url_pattern = re.compile(
@@ -30,27 +31,27 @@ class DownloaderService(object):
     logger = LoggingDependency()
 
     @event_handler('http_server', 'url_to_download')
-    def download_url(self, url_and_filters):
-        url, filters, url_hash = url_and_filters
+    def download_url(self, job_data):
+        url = job_data['url']
         log('Downloading {url}'.format(url=url))
         if not url_pattern.match(url):
             logging.error('Error with {url}: not a URL'.format(url=url))
             return
-        file_name = os.path.join(SOURCES_FOLDER, url_hash)
-        if os.path.exists(file_name):
-            log('Fetching from cache {file_name}'.format(file_name=file_name))
-            self.dispatch('file_to_reduce', (file_name, filters))
-            return
-        self.storage.set_status(url_hash, STATUS_DOWNLOAD)
-        try:
-            with closing(session.get(url, stream=True)) as response:
-                # TODO: to prevent huge file download?
-                # if int(response.headers['content-length']) < TOO_LONG:
-                with open(file_name, 'wb') as f:
-                    for chunk in response.iter_content(chunk_size=1024):
-                        if chunk:
-                            f.write(chunk)
-        except Exception as e:
-            logging.error('Error with {url}: {e}'.format(url=url, e=e))
-            return
-        self.dispatch('file_to_reduce', (file_name, filters))
+        file_path = os.path.join(SOURCES_FOLDER, job_data['url_hash'])
+        if file_exists(file_path):
+            log('Fetching from cache {file_path}'.format(file_path=file_path))
+        else:
+            self.storage.set_status(job_data['job_hash'], STATUS_DOWNLOAD)
+            try:
+                with closing(session.get(url, stream=True)) as response:
+                    # TODO: to prevent huge file download?
+                    # if int(response.headers['content-length']) < TOO_LONG:
+                    with open(file_path, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=1024):
+                            if chunk:
+                                f.write(chunk)
+            except Exception as e:
+                logging.error('Error with {url}: {e}'.format(url=url, e=e))
+                return
+        log('Dispatching reduce of {file_path}'.format(file_path=file_path))
+        self.dispatch('file_to_reduce', job_data)
