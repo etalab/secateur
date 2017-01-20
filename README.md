@@ -102,7 +102,7 @@ HTTP/1.1 202 ACCEPTED
 ...
 
 {
-    "hash": "c8fef19134"
+    "hash": "b1dad5478d"
 }
 ```
 
