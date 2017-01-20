@@ -64,13 +64,13 @@ class ReducerService(object):
             writer.writerow(row)
 
     @event_handler('url_downloader', 'file_to_reduce')
-    def reduce_file(self, job_data):
-        file_path = os.path.join(SOURCES_FOLDER, job_data['url_hash'])
-        job_hash = job_data['job_hash']
+    def reduce_file(self, parameters):
+        file_path = os.path.join(SOURCES_FOLDER, parameters['url_hash'])
+        job_hash = parameters['job_hash']
         file_path_out = os.path.join(RESULTS_FOLDER, job_hash)
         log('Reducing {file_path} to {file_path_out}'.format(
             file_path=file_path, file_path_out=file_path_out))
-        from_cache = file_exists(file_path_out) and not job_data['force']
+        from_cache = file_exists(file_path_out) and not parameters['force']
         if from_cache:
             log('Fetching from cache {file_path_out}'.format(
                 file_path_out=file_path_out))
@@ -87,5 +87,5 @@ class ReducerService(object):
                 csvfile_out, fieldnames=reader.fieldnames, dialect=dialect)
             writer.writeheader()
             for row in reader:
-                self.write_row(writer, row, job_data['filters'])
+                self.write_row(writer, row, parameters['filters'])
             self.storage.set_status(job_hash, STATUS_COMPLETE)

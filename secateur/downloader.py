@@ -30,28 +30,33 @@ class DownloaderService(object):
     storage = RedisStorage()
     logger = LoggingDependency()
 
+    def download_file_by_chunk(self, url, file_path, chunk_size=1024):
+        """Download streamed `url` to `file_path` by `chunk_size`."""
+        with closing(session.get(url, stream=True)) as response:
+            # TODO: to prevent huge file download?
+            # if int(response.headers['content-length']) < TOO_LONG:
+            with open(file_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=chunk_size):
+                    if chunk:
+                        f.write(chunk)
+
     @event_handler('http_server', 'url_to_download')
-    def download_url(self, job_data):
-        url = job_data['url']
+    def download_url(self, parameters):
+        url = parameters['url']
         log('Downloading {url}'.format(url=url))
         if not url_pattern.match(url):
             logging.error('Error with {url}: not a URL'.format(url=url))
             return
-        file_path = os.path.join(SOURCES_FOLDER, job_data['url_hash'])
-        if file_exists(file_path) and not job_data['force']:
+        file_path = os.path.join(SOURCES_FOLDER, parameters['url_hash'])
+        from_cache = file_exists(file_path) and not parameters['force']
+        if from_cache:
             log('Fetching from cache {file_path}'.format(file_path=file_path))
         else:
-            self.storage.set_status(job_data['job_hash'], STATUS_DOWNLOAD)
+            self.storage.set_status(parameters['job_hash'], STATUS_DOWNLOAD)
             try:
-                with closing(session.get(url, stream=True)) as response:
-                    # TODO: to prevent huge file download?
-                    # if int(response.headers['content-length']) < TOO_LONG:
-                    with open(file_path, 'wb') as f:
-                        for chunk in response.iter_content(chunk_size=1024):
-                            if chunk:
-                                f.write(chunk)
+                self.download_file_by_chunk(url, file_path)
             except Exception as e:
                 logging.error('Error with {url}: {e}'.format(url=url, e=e))
                 return
         log('Dispatching reduce of {file_path}'.format(file_path=file_path))
-        self.dispatch('file_to_reduce', job_data)
+        self.dispatch('file_to_reduce', parameters)
