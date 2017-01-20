@@ -24,10 +24,18 @@ Use the `--config config-debug.yaml` to get some useful log messages.
 
 ## API
 
+
+### Ask for a cut
+
 Submit a new file to split (you can combine multiple column/value filters):
 
 ```shell
-$ http :8000/process url=="https://www.data.gouv.fr/storage/f/2014-03-31T09-49-28/muni-2014-resultats-com-1000-et-plus-t2.txt" column=="Code du département" value=="01" column=="Code de la commune" value=="004"
+$ http :8000/process↩
+  url=="https://www.data.gouv.fr/storage/f/2014-03-31T09-49-28/muni-2014-resultats-com-1000-et-plus-t2.txt"↩
+  column=="Code du département"↩
+  value=="01"↩
+  column=="Code de la commune"↩
+  value=="004"
 HTTP/1.1 202 ACCEPTED
 ...
 
@@ -35,6 +43,9 @@ HTTP/1.1 202 ACCEPTED
     "hash": "8c5020491f"
 }
 ```
+
+
+### Check status
 
 If asking results immediately:
 
@@ -60,6 +71,9 @@ HTTP/1.1 201 CREATED
 ...
 ```
 
+
+### Get result file
+
 Now we can retrieve (and even link to) the resulting file:
 
 ```shell
@@ -80,11 +94,17 @@ Date de l'export;Code du département;Type de scrutin;Libellé du département;C
 Note that headers of the file are adequate and the initial CSV dialect
 is kept.
 
+
+### More options
+
 Subsequent calls will not download the source file again but reduce
 the file straight away:
 
 ```shell
-$ http :8000/process url=="https://www.data.gouv.fr/storage/f/2014-03-31T09-49-28/muni-2014-resultats-com-1000-et-plus-t2.txt" column=="Code du département" value=="01"
+$ http :8000/process↩
+  url=="https://www.data.gouv.fr/storage/f/2014-03-31T09-49-28/muni-2014-resultats-com-1000-et-plus-t2.txt"↩
+  column=="Code du département"↩
+  value=="01"
 HTTP/1.1 202 ACCEPTED
 ...
 
@@ -94,10 +114,15 @@ HTTP/1.1 202 ACCEPTED
 ```
 
 However, you can force to download/reduce files again with the `force`
-parameter:
+parameter. Additionally, you can fine select which step to force with
+`force_download` or `force_reduce`:
 
 ```shell
-$ http :8000/process url=="https://www.data.gouv.fr/storage/f/2014-03-31T09-49-28/muni-2014-resultats-com-1000-et-plus-t2.txt" column=="Code du département" value=="01" force=="1"
+$ http :8000/process↩
+  url=="https://www.data.gouv.fr/storage/f/2014-03-31T09-49-28/muni-2014-resultats-com-1000-et-plus-t2.txt"↩
+  column=="Code du département"↩
+  value=="01"↩
+  force=="1"
 HTTP/1.1 202 ACCEPTED
 ...
 
@@ -107,9 +132,26 @@ HTTP/1.1 202 ACCEPTED
 ```
 
 
+You can deal with CSV files with no headers too using the `no_headers`
+parameter and passing `column` as the number of the column you want
+to filter on (`1` is the first column, `2` is the second and so on).
+
+```shell
+$ http :8000/process↩
+  url=="https://www.data.gouv.fr/s/resources/extraction-du-fichier-national-des-etablissements-sanitaires-et-sociaux-finess-par-etablissements/20161220-141322/etalab_cs1100507_stock_20161220-0437.csv"↩
+  column=="2"↩
+  value=="010002350"↩
+  no_headers=="1"
+HTTP/1.1 202 ACCEPTED
+...
+
+{
+    "hash": "063fd60baf"
+}
+```
+
 
 ## To discuss
 
 * store a complete log of requests to be able to replay everything?
-* make is works with unamed/no columns (indexes?)
-* add the ability to force encoding from GET parameters
+* add the ability to force encoding from GET parameters?

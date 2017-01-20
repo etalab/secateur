@@ -41,22 +41,22 @@ class DownloaderService(object):
                         f.write(chunk)
 
     @event_handler('http_server', 'url_to_download')
-    def download_url(self, parameters):
-        url = parameters['url']
+    def download_url(self, params):
+        url = params['url']
         log('Downloading {url}'.format(url=url))
         if not url_pattern.match(url):
             logging.error('Error with {url}: not a URL'.format(url=url))
             return
-        file_path = os.path.join(SOURCES_FOLDER, parameters['url_hash'])
-        from_cache = file_exists(file_path) and not parameters['force']
+        file_path = os.path.join(SOURCES_FOLDER, params['url_hash'])
+        from_cache = file_exists(file_path) and not params['force_download']
         if from_cache:
             log('Fetching from cache {file_path}'.format(file_path=file_path))
         else:
-            self.storage.set_status(parameters['job_hash'], STATUS_DOWNLOAD)
+            self.storage.set_status(params['job_hash'], STATUS_DOWNLOAD)
             try:
                 self.download_file_by_chunk(url, file_path)
             except Exception as e:
                 logging.error('Error with {url}: {e}'.format(url=url, e=e))
                 return
         log('Dispatching reduce of {file_path}'.format(file_path=file_path))
-        self.dispatch('file_to_reduce', parameters)
+        self.dispatch('file_to_reduce', params)

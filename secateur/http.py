@@ -25,6 +25,9 @@ class HttpService(object):
     @http('GET', '/process')
     def process_url(self, request):
         force = bool(int(request.args.get('force', 0)))
+        force_download = bool(int(request.args.get('force_download', 0)))
+        force_reduce = bool(int(request.args.get('force_reduce', 0)))
+        no_headers = bool(int(request.args.get('no_headers', 0)))
         url = request.args.get('url')
         filters = list(zip(request.args.getlist('column'),
                            request.args.getlist('value')))
@@ -39,7 +42,9 @@ class HttpService(object):
                 'filters': filters,
                 'job_hash': job_hash,
                 'url_hash': url_hash,
-                'force': force
+                'force_download': force_download,
+                'force_reduce': force_reduce,
+                'no_headers': no_headers
             })
         return ACCEPTED, json.dumps({'hash': job_hash}, indent=2)
 
